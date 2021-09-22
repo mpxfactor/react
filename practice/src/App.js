@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react'
 import PersonForm from './components/personForm'
 import PersonFilter from './components/personFilter'
 import PersonContent from './components/personContent'
+import PersonService from './service/personsService'
 import axios from 'axios'
 
 const App = () => {
@@ -13,10 +14,9 @@ const App = () => {
 
   useEffect (() => {
     console.log ('effect')
-    axios
-      .get ("http://localhost:3001/persons")
+    PersonService
+      .getAll ()
       .then (response => {
-        console.log ('promise fulfilled')
         setPerson (response.data)
       })
 
@@ -37,8 +37,14 @@ const App = () => {
         number : newNumber,
         id : person.length + 1,
       }
-      setPerson(person.concat (personObject))
-      setAllPerson(allPerson.concat(newPerson))
+
+      PersonService
+        .create (personObject)
+        .then (response => {
+          setPerson (person.concat(response.data))
+          setAllPerson (allPerson.concat(response.data.person))
+
+        })
     }  
   }
 
@@ -53,8 +59,6 @@ const App = () => {
   const handleFilterChange = (event) => {
     setNewFilter(event.target.value)
   }
-
-
 
   return (
     <div>
