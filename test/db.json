@@ -21,7 +21,7 @@
     {
       "content": "new note",
       "date": "2021-09-20T16:22:28.115Z",
-      "important": true,
+      "important": false,
       "id": 4
     },
     {
@@ -63,7 +63,7 @@
     {
       "content": "",
       "date": "2021-09-21T14:17:47.493Z",
-      "important": true,
+      "important": false,
       "id": 11
     },
     {
