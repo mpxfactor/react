@@ -5,10 +5,10 @@ const cors = require ('cors')
 const app = express()
 
 app.use(express.json())
+app.use (express.static('build'))
 app.use (cors())
 
-
-let notes = [
+/*let notes = [
   {
     id: 1,
     content: "HTML is easy",
@@ -27,11 +27,11 @@ let notes = [
     date: "2019-05-30T19:20:14.298Z",
     important: true
   }
-]
+]*/
 
 
 
-app.get('/api/notes', (request, response) => {
+/*app.get('/api/notes', (request, response) => {
   response.json(notes)
 })
 
@@ -94,7 +94,87 @@ const unKnownEndPoint = (request, response) => {
 
 app.use (unKnownEndPoint)
 
-const PORT = 3001
+const PORT = process.env.PORT || 3001
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+})*/
+
+
+const errorHandler = (error, request, response, next) => {
+  console.error (error.message)
+
+  if (error === 'CastError') {
+    return response.status (400).send ({error : 'malformed id'})
+  }
+
+  next (error)
+}
+
+app.use(errorHandler)
+
+require('dotenv').config()
+const Note = require('./models/note')
+
+//const url =
+//    `mongodb+srv://fullstack:fullstack@cluster0.it9ho.mongodb.net/note-app?retryWrites=true&w=majority`
+
+app.get ('/api/notes', (request, response) => {
+  Note.find ({}).then (notes => {
+    response.json (notes)
+  })
+})
+
+app.get ('/api/notes/:id', (request, response, next) => {
+  Note.findById(request.params.id).then (note => {
+    if (note) {
+      response.json (note)
+    } else {
+      response.status (400).end ()
+    }
+  }).catch (error => next (error))
+})
+
+app.post ('/api/notes', (request, response) => {
+  const body = request.body
+  if (body.content === undefined) {
+    return response.status(400).json({ error: 'content missing' })
+  }
+
+  const note = new Note({
+    content: body.content,
+    important: body.important || false,
+    date: new Date(),
+  })
+
+  note.save().then(savedNote => {
+    response.json(savedNote)
+  })
+})
+
+app.delete ('/api/notes/:id', (request, response, next) => {
+  Note.findByIdAndDelete (request.params.id) 
+  .then (result => {
+    response.status (204).end ()
+  })
+  .catch (error => next (error))
+})
+
+app.put ('/api/notes/:id', (request, response, next) => {
+  const body = request.body
+
+  const note = {
+    content : body.content,
+    important : body.important,
+  }
+
+  Note.findByIdAndUpdate (request.params.id, note, {new: true})
+    .then (updateNote => {
+      response.json (updateNote)
+    })
+    .catch (error => next (error))
+})
+
+const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })

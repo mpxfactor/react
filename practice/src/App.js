@@ -35,7 +35,6 @@ const App = () => {
       const personObject = {
         name : newPerson,
         number : newNumber,
-        id : person.length + 1,
       }
 
       PersonService
@@ -43,6 +42,7 @@ const App = () => {
         .then (response => {
           setPerson (person.concat(response.data))
           setAllPerson (allPerson.concat(response.data.person))
+          setNewPerson ('')
 
         })
     }  
@@ -50,6 +50,7 @@ const App = () => {
 
   const handleNameChange = (event) => {
      setNewPerson (event.target.value) 
+     console.log (event.target.value)
   }
 
   const handleNumberChange = (event) => {
