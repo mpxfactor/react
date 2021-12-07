@@ -116,11 +116,13 @@ app.post ('/api/persons', (request, response) => {
 */
 
 const errorHandler = (error, request, response, next) => {
-  console.log (error)
+  console.error (error.message)
 
-  if (error === 'CastError'){
+  if (error.name === 'CastError'){
     return response.status (400).send ({error : 'malformed id'})
-  } 
+  } else if (error.name === 'ValidationError') {
+    return response.status (400).send ({error : error.message})
+  }
 
   next (error)
 }
@@ -142,17 +144,26 @@ app.get ('/api/persons/:id', (request, response) => {
   })
 })
 
-app.post ('/api/persons', (request, response) => {
+app.post ('/api/persons', (request, response, next) => {
   const body = request.body
+
+  if (body.name === undefined) {
+    return response.status(400).json({ error: 'content missing' })
+  }
 
   const newPerson = new Person ({
       name : body.name,
       number : body.number
   })
 
-  newPerson.save ().then (result => {
+  /*newPerson.save ().then (result => {
       console.log ('person saved')
-  })
+  })*/
+
+  newPerson 
+    .save ()
+    .then (personSaved => response.json (personSaved))
+    .catch (error => next (error))
 })
 
 app.delete ('/api/persons/:id', (request, response, next) => {

@@ -103,8 +103,10 @@ app.listen(PORT, () => {
 const errorHandler = (error, request, response, next) => {
   console.error (error.message)
 
-  if (error === 'CastError') {
+  if (error.name === 'CastError') {
     return response.status (400).send ({error : 'malformed id'})
+  } else if (error.name === 'ValidationError') {
+    return response.status (400). send ({error: error.message})
   }
 
   next (error)
@@ -134,7 +136,7 @@ app.get ('/api/notes/:id', (request, response, next) => {
   }).catch (error => next (error))
 })
 
-app.post ('/api/notes', (request, response) => {
+app.post ('/api/notes', (request, response, next) => {
   const body = request.body
   if (body.content === undefined) {
     return response.status(400).json({ error: 'content missing' })
@@ -146,9 +148,15 @@ app.post ('/api/notes', (request, response) => {
     date: new Date(),
   })
 
-  note.save().then(savedNote => {
+  /*note.save().then(savedNote => {
     response.json(savedNote)
-  })
+  })*/
+
+  note
+    .save ()
+    .then (savedNote => savedNote.toJSON ())
+    .then (savedAndFormattedNote => {response.json (savedAndFormattedNote)})
+    .catch(error => next (error))
 })
 
 app.delete ('/api/notes/:id', (request, response, next) => {
